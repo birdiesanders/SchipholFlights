@@ -16,7 +16,7 @@ import {
   ToastAndroid,
   RefreshControl,
   TouchableOpacity,
-  } from 'react-native';
+} from 'react-native';
 //import Header from './Header';
 //import AnimatedList from 'react-native-animated-list';
 let _listView: ListView;
@@ -59,6 +59,7 @@ export default class SchipholFlights extends Component {
     super(props);
 
     this._onLoadMore = this._onLoadMore.bind(this);
+    //noinspection JSUnusedGlobalSymbols
     let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.id !== r2.id});
     this.state = {
       refreshing: false,
@@ -146,7 +147,7 @@ export default class SchipholFlights extends Component {
           //renderHeader={() => this.renderHeader() }
           renderFooter={() => this.renderFooter() }
           dataSource={this.state.flightsData}
-          renderRow={this.renderRow}
+          renderRow={SchipholFlights.renderRow}
           style={styles.container}
           enableEmptySections={true}
           elevation={2}
@@ -163,7 +164,7 @@ export default class SchipholFlights extends Component {
 
   _onActionSelected = (position) => {
     console.log({toolbarPosition: position.toString()});
-    switch (position){
+    switch (position) {
       case 2:
         this._onLoadMore(this.state.pageNumber + 1);
         break;
@@ -220,16 +221,6 @@ export default class SchipholFlights extends Component {
     );
   }
 
-  _renderHeader() {
-    return (
-
-      <ToolbarAndroid
-        logo={require('./schiphollogo.png')}
-        title={"Schiphol airport Flights"}
-      />
-    );
-  }
-
   renderFooter() {
 
     return (
@@ -255,7 +246,7 @@ export default class SchipholFlights extends Component {
     );
   }
 
-  renderRow(rowData) {
+  static renderRow(rowData) {
     return (
       <View style={styles.flightRow}>
         {/*<Image*/}
