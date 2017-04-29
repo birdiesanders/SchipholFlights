@@ -13,16 +13,15 @@ import {
   Text,
   View,
   ListView,
-  Navigator,
-  TextInput,
   ToastAndroid,
-  Image,
   RefreshControl,
-  TouchableOpacity, ReportableEvent as error
-} from 'react-native';
+  TouchableOpacity,
+  } from 'react-native';
 //import Header from './Header';
 //import AnimatedList from 'react-native-animated-list';
 let _listView: ListView;
+let nativeImageSource = require('nativeImageSource');
+let Switch = require('Switch');
 
 class FadeInView extends Component {
   constructor(props) {
@@ -60,11 +59,13 @@ export default class SchipholFlights extends Component {
     super(props);
 
     this._onLoadMore = this._onLoadMore.bind(this);
-    var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.id !== r2.id});
+    let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.id !== r2.id});
     this.state = {
       refreshing: false,
       pageNumber: 0,
+      toolbarSwitch: false,
       pageSelectText: "Page Number",
+      toolbarPosition: "",
       flightsData: ds.cloneWithRows([]),
     };
   }
@@ -72,7 +73,7 @@ export default class SchipholFlights extends Component {
 
   fetchFlightsData() {
 
-    var url = 'https://api.schiphol.nl/public-flights/flights?app_id=44b654bb&app_key=9e13b015fc8a2a97c2ae3cce83175846&includedelays=true&page=' + this.state.pageNumber + '&sort=%2Bscheduletime';
+    let url = 'https://api.schiphol.nl/public-flights/flights?app_id=44b654bb&app_key=9e13b015fc8a2a97c2ae3cce83175846&includedelays=true&page=' + this.state.pageNumber + '&sort=%2Bscheduletime';
     // var url = 'https://facebook.github.io/react-native/movies.json';
     this.setState({refreshing: true});
 
@@ -118,26 +119,6 @@ export default class SchipholFlights extends Component {
 
   }
 
-  //     var url = 'https://api.schiphol.nl/public-flights/flights?app_id=44b654bb&app_key=9e13b015fc8a2a97c2ae3cce83175846';
-  //     this.setState({refreshing: true});
-  //     fetch(url, {
-  //         headers: {
-  //             'Accept': 'application/json',
-  //             'ResourceVersion': 'v3'
-  //         }
-  //     })
-  //         .then(response => response.json())
-  //         .then(jsonData => {
-  //             this.setState({
-  //                 flightsData: this.state.flightsData.cloneWithRows(jsonData.flights),
-  //             });
-  //         })
-  //         .catch(error => console.log('Error fetching: ' + error))
-  //         .then(() => {
-  //             this.setState({refreshing: false});
-  //         });
-  // }
-
   componentDidMount() {
     this.fetchFlightsData();
   }
@@ -145,12 +126,24 @@ export default class SchipholFlights extends Component {
   render() {
 
     return (
+      <View style={styles.container}>
+        <ToolbarAndroid
+          title="Schiphol Flights"
+          style={styles.toolbar}
+          actions={this.toolbarActions}
+          onActionSelected={this._onActionSelected}
+          // subtitle={this.state.toolbarPosition}
+          subtitle={("Page " + (this.state.pageNumber + 1).toString())}
+          //
+          //
+        >
+        </ToolbarAndroid>
 
         <ListView
           ref={(listView) => {
             _listView = listView;
           }}
-          renderHeader={() => this.renderHeader() }
+          //renderHeader={() => this.renderHeader() }
           renderFooter={() => this.renderFooter() }
           dataSource={this.state.flightsData}
           renderRow={this.renderRow}
@@ -164,33 +157,69 @@ export default class SchipholFlights extends Component {
             />
           }
         />
+      </View>
     );
   }
+
+  _onActionSelected = (position) => {
+    console.log({toolbarPosition: position.toString()});
+    switch (position){
+      case 2:
+        this._onLoadMore(this.state.pageNumber + 1);
+        break;
+      case 0:
+        this._onLoadMore((this.state.pageNumber > 0) ? this.state.pageNumber - 1 : 0);
+        break;
+      case 1:
+        this._onLoadMore(0);
+        break;
+      default:
+        break;
+    }
+  };
+
+  toolbarActions = [
+    {
+      title: 'Previous', icon: nativeImageSource({
+      android: 'ic_create_black_48dp',
+      width: 96,
+      height: 96
+    }), show: 'always'
+    },
+    {title: 'First Page'},
+    {
+      title: 'Next', icon: nativeImageSource({
+      android: 'ic_settings_black_48dp',
+      width: 96,
+      height: 96
+    }), show: 'always'
+    },
+  ];
 
   renderHeader() {
     return (
 
       <View style={styles.header}>
-        <Image
-          style={styles.img}
-          source={require('./schiphollogo.png')}
-        />
-        {/*<Text style={styles.titleText}>Schiphol Airport Flights</Text>*/}
+        {/*<Image*/}
+        {/*style={styles.img}*/}
+        {/*source={require('./schiphollogo.png')}*/}
+        {/*/>*/}
+        <Text style={styles.titleText}>Schiphol Airport Flights</Text>
         <TouchableOpacity
           style={styles.headerButton}
           onPress={() => this._onLoadMore(0)}
         >
-          <Text style={styles.buttonText}>First Page</Text>
+          <Text style={styles.buttonText}>First</Text>
         </TouchableOpacity><TouchableOpacity
         style={styles.headerButton}
         onPress={() => this._onLoadMore((this.state.pageNumber > 0) ? this.state.pageNumber - 1 : this.state.pageNumber = 0)}
       >
-        <Text style={styles.buttonText}>Previous Page</Text>
+        <Text style={styles.buttonText}>Previous</Text>
       </TouchableOpacity><TouchableOpacity
         style={styles.headerButton}
         onPress={() => this._onLoadMore(this.state.pageNumber + 1)}
       >
-        <Text style={styles.buttonText}>Next Page</Text>
+        <Text style={styles.buttonText}>Next</Text>
       </TouchableOpacity>
         <FadeInView><Text style={{textAlign: 'right'}}>Page {this.state.pageNumber + 1}</Text></FadeInView>
       </View>
@@ -201,8 +230,8 @@ export default class SchipholFlights extends Component {
     return (
 
       <ToolbarAndroid
-      logo={require('./schiphollogo.png')}
-      title={"Schiphol airport Flights"}
+        logo={require('./schiphollogo.png')}
+        title={"Schiphol airport Flights"}
       />
     );
   }
@@ -257,15 +286,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2',
     elevation: 0,
   },
+  toolbar: {
+    justifyContent: 'space-between',
+    backgroundColor: 'steelblue',
+    height: 54,
+  },
   flightRow: {
     backgroundColor: '#ffffff',
     marginBottom: 5,
     elevation: 1
   },
   img: {
-    // flex: 1,
-    height: 50,
-    width: 150,
+    height: 48,
+    width: 48,
     margin: 0
   },
   txt: {
@@ -292,7 +325,7 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     elevation: 0,
-    backgroundColor: 'steelblue',
+    //backgroundColor: 'steelblue',
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
@@ -306,6 +339,7 @@ const styles = StyleSheet.create({
 
   },
   footerButton: {
+    flex: 1,
     elevation: 0,
     backgroundColor: 'steelblue',
     paddingHorizontal: 10,
