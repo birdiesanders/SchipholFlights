@@ -180,19 +180,13 @@ export default class SchipholFlights extends Component {
 
   toolbarActions = [
     {
-      title: 'Previous', icon: nativeImageSource({
-      android: 'ic_create_black_48dp',
-      width: 96,
-      height: 96
-    }), show: 'always'
+      title: 'Previous', icon: require('./ic_chevron_left_black_48dp.png'),
+      show: 'always'
     },
     {title: 'First Page'},
     {
-      title: 'Next', icon: nativeImageSource({
-      android: 'ic_settings_black_48dp',
-      width: 96,
-      height: 96
-    }), show: 'always'
+      title: 'Next', icon: require('./ic_chevron_right_black_48dp.png'),
+      show: 'always'
     },
   ];
 
