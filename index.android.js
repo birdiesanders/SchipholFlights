@@ -17,8 +17,6 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
-//import Header from './Header';
-//import AnimatedList from 'react-native-animated-list';
 let _listView: ListView;
 let nativeImageSource = require('nativeImageSource');
 let Switch = require('Switch');
@@ -135,8 +133,7 @@ export default class SchipholFlights extends Component {
           onActionSelected={this._onActionSelected}
           // subtitle={this.state.toolbarPosition}
           subtitle={("Page " + (this.state.pageNumber + 1).toString())}
-          //
-          //
+          logo={require('./schiphollogo.png')}
         >
         </ToolbarAndroid>
 
@@ -144,7 +141,7 @@ export default class SchipholFlights extends Component {
           ref={(listView) => {
             _listView = listView;
           }}
-          //renderHeader={() => this.renderHeader() }
+          renderHeader={() => this.renderHeader() }
           renderFooter={() => this.renderFooter() }
           dataSource={this.state.flightsData}
           renderRow={SchipholFlights.renderRow}
@@ -165,14 +162,15 @@ export default class SchipholFlights extends Component {
   _onActionSelected = (position) => {
     console.log({toolbarPosition: position.toString()});
     switch (position) {
-      case 2:
-        this._onLoadMore(this.state.pageNumber + 1);
-        break;
+
       case 0:
         this._onLoadMore((this.state.pageNumber > 0) ? this.state.pageNumber - 1 : 0);
         break;
       case 1:
         this._onLoadMore(0);
+        break;
+      case 2:
+        this._onLoadMore(this.state.pageNumber + 1);
         break;
       default:
         break;
@@ -200,22 +198,6 @@ export default class SchipholFlights extends Component {
         {/*source={require('./schiphollogo.png')}*/}
         {/*/>*/}
         <Text style={styles.titleText}>Schiphol Airport Flights</Text>
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => this._onLoadMore(0)}
-        >
-          <Text style={styles.buttonText}>First</Text>
-        </TouchableOpacity><TouchableOpacity
-        style={styles.headerButton}
-        onPress={() => this._onLoadMore((this.state.pageNumber > 0) ? this.state.pageNumber - 1 : this.state.pageNumber = 0)}
-      >
-        <Text style={styles.buttonText}>Previous</Text>
-      </TouchableOpacity><TouchableOpacity
-        style={styles.headerButton}
-        onPress={() => this._onLoadMore(this.state.pageNumber + 1)}
-      >
-        <Text style={styles.buttonText}>Next</Text>
-      </TouchableOpacity>
         <FadeInView><Text style={{textAlign: 'right'}}>Page {this.state.pageNumber + 1}</Text></FadeInView>
       </View>
     );
@@ -272,7 +254,8 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   toolbar: {
-    justifyContent: 'space-between',
+    elevation: 2,
+    justifyContent: 'flex-start',
     backgroundColor: 'steelblue',
     height: 54,
   },
@@ -301,7 +284,7 @@ const styles = StyleSheet.create({
   header: {
     flex: 1,
     padding: 16,
-    elevation: 2,
+    elevation: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
