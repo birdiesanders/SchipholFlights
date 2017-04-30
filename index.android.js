@@ -3,8 +3,7 @@
  * https://github.com/facebook/react-native
  * @flow
  */
-
-import React, {Component} from 'react';
+import React, {Component} from "react";
 import {
   Animated,
   ToolbarAndroid,
@@ -17,7 +16,8 @@ import {
   ToastAndroid,
   RefreshControl,
   TouchableOpacity,
-} from 'react-native';
+  WebView
+} from "react-native";
 let _listView: ListView;
 let nativeImageSource = require('nativeImageSource');
 let Switch = require('Switch');
@@ -59,7 +59,10 @@ export default class SchipholFlights extends Component {
     this.setModalVisible = this.setModalVisible.bind(this);
     this._onLoadMore = this._onLoadMore.bind(this);
     //noinspection JSUnusedGlobalSymbols
-    let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.id !== r2.id});
+    let ds = new ListView.DataSource({
+      rowHasChanged: (r1, r2) => r1.id !== r2.id,
+      sectionHeaderHasChanged: (s1, s2) => s1 !== s2,
+    });
     this.state = {
       refreshing: false,
       pageNumber: 0,
@@ -67,7 +70,8 @@ export default class SchipholFlights extends Component {
       pageSelectText: "Page Number",
       toolbarPosition: "",
       flightsData: ds.cloneWithRows([]),
-      modalData: [],
+      modalData: ds.cloneWithRows([]),
+      destinations: ds.cloneWithRows([]),
     };
   }
 
@@ -92,9 +96,8 @@ export default class SchipholFlights extends Component {
         });
         this.setState({refreshing: false});
       })
-      .catch(error => (ToastAndroid.show('Error Fetching Flight Data! ', ToastAndroid.LONG)(this.setState({refreshing: false}))))
+      .catch(error => (ToastAndroid.show('Error Fetching Flight Data! ', ToastAndroid.LONG)))
       .done();
-    //if(error){(this.setState({refreshing: false}));}
   };
 
 
@@ -121,8 +124,9 @@ export default class SchipholFlights extends Component {
 
   };
 
-  setModalVisible(visible) {
+  setModalVisible = (visible) => {
     this.setState({modalVisible: visible});
+    console.log(this.state.modalData.toString())
   };
 
   componentDidMount() {
@@ -145,21 +149,32 @@ export default class SchipholFlights extends Component {
         </ToolbarAndroid>
         <Modal
           animationType={"slide"}
+          style={
+            {flex: 1,
+            flexDirection: 'column'
+          }}
           transparent={false}
           visible={this.state.modalVisible}
-          onRequestClose={() => {alert("Modal has been closed.")}}
+          onRequestClose={() => {this.setModalVisible(!this.state.modalVisible)}}
         >
-          <View style={{marginTop: 22}}>
-            <View>
-              <Text>{this.state.modalData.flightName}</Text>
-
-              <TouchableOpacity onPress={() => {
+          <View>
+            <Text>Flight Name: {this.state.modalData.flightName}</Text>
+          </View>
+          <WebView
+            source={{uri: 'https://www.schiphol.nl/en/search/?q=' + this.state.modalData.flightName}}
+            style={{marginTop: 20,
+            flexDirection: 'column'}}/>
+          <View style={{
+            height: 54,
+          }}>
+            <TouchableOpacity
+              style={styles.footerButton}
+              onPress={() => {
               this.setModalVisible(!this.state.modalVisible)
             }}>
-                <Text>Hide Modal</Text>
-              </TouchableOpacity>
+              <Text style={styles.text}>Hide Details</Text>
+            </TouchableOpacity>
 
-            </View>
           </View>
         </Modal>
         <ListView
@@ -187,12 +202,13 @@ export default class SchipholFlights extends Component {
       <View style={styles.flightRow}>
         <TouchableOpacity onPress={() => {
           this.setModalVisible(true);
-          this.setState({modalData: rowData})
+          this.setState({modalData: rowData});
+          this.setState({destinations: rowData.route.destinations})
         }}>
           <View>
             <Text style={styles.txt}>{rowData.flightName} (Flight {rowData.flightNumber}) (Scheduled Takeoff
           Time: {rowData.scheduleTime} {rowData.scheduleDate})</Text>
-            <Text style={styles.txt}>Destination: {rowData.route.destinations} | Flight
+            <Text style={styles.txt}>Destination: {rowData.destinations} | Flight
           Status: {rowData.publicFlightState.flightStates.toString()} | Gate: {rowData.gate} | Flight
           direction: {rowData.flightDirection == 'A' ? 'Arriving' : 'Departing'}
             </Text>
@@ -232,6 +248,7 @@ export default class SchipholFlights extends Component {
       show: 'always'
     },
   ];
+
 
   renderHeader() {
     return (
@@ -332,7 +349,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: 'steelblue',
-
+  },
+    modalFooterContainer: {
+      flex: 1,
+      flexDirection: 'row',
+      padding: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'steelblue',
   },
   footerButton: {
     flex: 1,
