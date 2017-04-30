@@ -67,6 +67,7 @@ export default class SchipholFlights extends Component {
       pageSelectText: "Page Number",
       toolbarPosition: "",
       flightsData: ds.cloneWithRows([]),
+      modalData: [],
     };
   }
 
@@ -150,7 +151,7 @@ export default class SchipholFlights extends Component {
         >
           <View style={{marginTop: 22}}>
             <View>
-              <Text>Hello World!</Text>
+              <Text>{this.state.modalData.flightName}</Text>
 
               <TouchableOpacity onPress={() => {
               this.setModalVisible(!this.state.modalVisible)
@@ -184,7 +185,10 @@ export default class SchipholFlights extends Component {
   renderRow = (rowData) => {
     return (
       <View style={styles.flightRow}>
-        <TouchableOpacity onPress={() => this.setModalVisible(true)}>
+        <TouchableOpacity onPress={() => {
+          this.setModalVisible(true);
+          this.setState({modalData: rowData})
+        }}>
           <View>
             <Text style={styles.txt}>{rowData.flightName} (Flight {rowData.flightNumber}) (Scheduled Takeoff
           Time: {rowData.scheduleTime} {rowData.scheduleDate})</Text>
