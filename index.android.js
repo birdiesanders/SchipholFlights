@@ -10,11 +10,13 @@ import {
   AppRegistry,
   StyleSheet,
   Text,
+  TextInput,
   View,
   Modal,
   ListView,
   ToastAndroid,
   RefreshControl,
+  TouchableHighlight,
   TouchableOpacity,
   WebView
 } from "react-native";
@@ -67,6 +69,8 @@ export default class SchipholFlights extends Component {
       refreshing: false,
       pageNumber: 0,
       modalVisible: false,
+      searchModalVisible: false,
+      searchModalQuery: "none",
       pageSelectText: "Page Number",
       toolbarPosition: "",
       flightsData: ds.cloneWithRows([]),
@@ -129,6 +133,11 @@ export default class SchipholFlights extends Component {
     console.log(this.state.modalData.toString())
   };
 
+  setSearchModalVisible = (visible) => {
+    this.setState({searchModalVisible: visible});
+    console.log(this.state.searchModalQuery)
+  };
+
   componentDidMount() {
     this.fetchFlightsData();
   }
@@ -157,8 +166,8 @@ export default class SchipholFlights extends Component {
           visible={this.state.modalVisible}
           onRequestClose={() => {this.setModalVisible(!this.state.modalVisible)}}
         >
-          <View>
-            <Text>Flight Name: {this.state.modalData.flightName}</Text>
+          <View style={styles.modalHeader}>
+            <Text style={styles.headerText}>Flight Name: {this.state.modalData.flightName}</Text>
           </View>
           <WebView
             source={{uri: 'https://www.schiphol.nl/en/search/?q=' + this.state.modalData.flightName}}
@@ -171,6 +180,36 @@ export default class SchipholFlights extends Component {
               style={styles.footerButton}
               onPress={() => {
               this.setModalVisible(!this.state.modalVisible)
+            }}>
+              <Text style={styles.text}>Hide Details</Text>
+            </TouchableOpacity>
+
+          </View>
+        </Modal>
+        <Modal
+          animationType={"slide"}
+          style={
+            {flex: 1,
+            flexDirection: 'column'
+          }}
+          transparent={false}
+          visible={this.state.searchModalVisible}
+          onRequestClose={() => {this.setSearchModalVisible(!this.state.searchModalVisible)
+          }}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.headerText}>Search results for: {this.state.searchModalQuery}</Text>
+          </View>
+          <WebView
+            source={{uri: 'https://www.schiphol.nl/en/search/?q=' + this.state.searchModalQuery}}
+            style={{marginTop: 20,
+            flexDirection: 'column'}}/>
+          <View style={{
+            height: 54,
+          }}>
+            <TouchableOpacity
+              style={styles.footerButton}
+              onPress={() => {
+              this.setSearchModalVisible(!this.state.searchModalQuery)
             }}>
               <Text style={styles.text}>Hide Details</Text>
             </TouchableOpacity>
@@ -216,7 +255,7 @@ export default class SchipholFlights extends Component {
         </TouchableOpacity>
       </View>
     );
-  }
+  };
 
   _onActionSelected = (position) => {
     console.log({toolbarPosition: position.toString()});
@@ -260,6 +299,20 @@ export default class SchipholFlights extends Component {
         {/*/>*/}
         {/*<Text style={styles.titleText}>Schiphol Airport Flights</Text>*/}
         <FadeInView><Text style={{textAlign: 'right'}}>Page {this.state.pageNumber + 1}</Text></FadeInView>
+        <TextInput
+        style={{
+          width: 54,
+          height: 32,
+          fontSize: 10,
+          margin: 0
+        }}
+        placeholder={"Search"}
+        onChangeText={(text) => {
+          this.setState({searchModalQuery: text});
+        }}
+        onSubmitEditing={() => {
+          this.setSearchModalVisible(true);
+        }}/>
       </View>
     );
   }
@@ -350,13 +403,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: 'steelblue',
   },
-    modalFooterContainer: {
+  modalFooterContainer: {
       flex: 1,
       flexDirection: 'row',
       padding: 8,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: 'steelblue',
+  },
+  modalHeader: {
+    padding: 16,
+    elevation: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'steelblue',
+
   },
   footerButton: {
     flex: 1,
