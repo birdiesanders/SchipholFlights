@@ -12,6 +12,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Modal,
   ListView,
   ToastAndroid,
   RefreshControl,
@@ -55,14 +56,14 @@ class FadeInView extends Component {
 export default class SchipholFlights extends Component {
   constructor(props) {
     super(props);
-
+    this.setModalVisible = this.setModalVisible.bind(this);
     this._onLoadMore = this._onLoadMore.bind(this);
     //noinspection JSUnusedGlobalSymbols
     let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.id !== r2.id});
     this.state = {
       refreshing: false,
       pageNumber: 0,
-      toolbarSwitch: false,
+      modalVisible: false,
       pageSelectText: "Page Number",
       toolbarPosition: "",
       flightsData: ds.cloneWithRows([]),
@@ -70,7 +71,7 @@ export default class SchipholFlights extends Component {
   }
 
 
-  fetchFlightsData() {
+  fetchFlightsData = () => {
 
     let url = 'https://api.schiphol.nl/public-flights/flights?app_id=44b654bb&app_key=9e13b015fc8a2a97c2ae3cce83175846&includedelays=true&page=' + this.state.pageNumber + '&sort=%2Bscheduletime';
     // var url = 'https://facebook.github.io/react-native/movies.json';
@@ -90,12 +91,13 @@ export default class SchipholFlights extends Component {
         });
         this.setState({refreshing: false});
       })
-      .catch(error => ToastAndroid.show('Error Fetching Flight Data! ', ToastAndroid.LONG))
+      .catch(error => (ToastAndroid.show('Error Fetching Flight Data! ', ToastAndroid.LONG)(this.setState({refreshing: false}))))
       .done();
     //if(error){(this.setState({refreshing: false}));}
-  }
+  };
 
-  _onLoadMore(pageNumber) {
+
+  _onLoadMore = (pageNumber) => {
     //this.setState({refreshing: true});
     this.setState({pageNumber: pageNumber});
     // this.fetchFlightsData();
@@ -116,7 +118,11 @@ export default class SchipholFlights extends Component {
       //this.forceUpdate()
     }.bind(this), 0);
 
-  }
+  };
+
+  setModalVisible(visible) {
+    this.setState({modalVisible: visible});
+  };
 
   componentDidMount() {
     this.fetchFlightsData();
@@ -132,19 +138,35 @@ export default class SchipholFlights extends Component {
           actions={this.toolbarActions}
           onActionSelected={this._onActionSelected}
           // subtitle={this.state.toolbarPosition}
-          subtitle={("Page " + (this.state.pageNumber + 1).toString())}
-          logo={require('./schiphollogo.png')}
+          //subtitle={("Page " + (this.state.pageNumber + 1).toString())}
+          //logo={require('./schiphollogo.png')}
         >
         </ToolbarAndroid>
+        <Modal
+          animationType={"slide"}
+          transparent={false}
+          visible={this.state.modalVisible}
+          onRequestClose={() => {alert("Modal has been closed.")}}
+        >
+          <View style={{marginTop: 22}}>
+            <View>
+              <Text>Hello World!</Text>
 
+              <TouchableOpacity onPress={() => {
+              this.setModalVisible(!this.state.modalVisible)
+            }}>
+                <Text>Hide Modal</Text>
+              </TouchableOpacity>
+
+            </View>
+          </View>
+        </Modal>
         <ListView
-          ref={(listView) => {
-            _listView = listView;
-          }}
+          ref={(listView) => {_listView = listView;}}
           renderHeader={() => this.renderHeader() }
           renderFooter={() => this.renderFooter() }
           dataSource={this.state.flightsData}
-          renderRow={SchipholFlights.renderRow}
+          renderRow={this.renderRow}
           style={styles.container}
           enableEmptySections={true}
           elevation={2}
@@ -159,12 +181,30 @@ export default class SchipholFlights extends Component {
     );
   }
 
+  renderRow = (rowData) => {
+    return (
+      <View style={styles.flightRow}>
+        <TouchableOpacity onPress={() => this.setModalVisible(true)}>
+          <View>
+            <Text style={styles.txt}>{rowData.flightName} (Flight {rowData.flightNumber}) (Scheduled Takeoff
+          Time: {rowData.scheduleTime} {rowData.scheduleDate})</Text>
+            <Text style={styles.txt}>Destination: {rowData.route.destinations} | Flight
+          Status: {rowData.publicFlightState.flightStates.toString()} | Gate: {rowData.gate} | Flight
+          direction: {rowData.flightDirection == 'A' ? 'Arriving' : 'Departing'}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   _onActionSelected = (position) => {
     console.log({toolbarPosition: position.toString()});
     switch (position) {
 
       case 0:
         this._onLoadMore((this.state.pageNumber > 0) ? this.state.pageNumber - 1 : 0);
+        //this.setModalVisible(true);
         break;
       case 1:
         this._onLoadMore(0);
@@ -197,7 +237,7 @@ export default class SchipholFlights extends Component {
         {/*style={styles.img}*/}
         {/*source={require('./schiphollogo.png')}*/}
         {/*/>*/}
-        <Text style={styles.titleText}>Schiphol Airport Flights</Text>
+        {/*<Text style={styles.titleText}>Schiphol Airport Flights</Text>*/}
         <FadeInView><Text style={{textAlign: 'right'}}>Page {this.state.pageNumber + 1}</Text></FadeInView>
       </View>
     );
@@ -228,22 +268,6 @@ export default class SchipholFlights extends Component {
     );
   }
 
-  static renderRow(rowData) {
-    return (
-      <View style={styles.flightRow}>
-        {/*<Image*/}
-        {/*//source={{uri:'https://image.tmdb.org/t/p/w500_and_h281_bestv2/'+rowData.poster_path}}*/}
-        {/*resizeMode='cover'*/}
-        {/*style={styles.img} />*/}
-        <Text style={styles.txt}>{rowData.flightName} (Flight {rowData.flightNumber}) (Scheduled Takeoff
-          Time: {rowData.scheduleTime} {rowData.scheduleDate})</Text>
-        <Text style={styles.txt}>Destination: {rowData.route.destinations} | Flight
-          Status: {rowData.publicFlightState.flightStates.toString()} | Gate: {rowData.gate} | Flight
-          direction: {rowData.flightDirection == 'A' ? 'Arriving' : 'Departing'}
-        </Text>
-      </View>
-    );
-  }
 
 }
 
