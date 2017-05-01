@@ -211,7 +211,7 @@ export default class SchipholFlights extends Component {
               onPress={() => {
               this.setSearchModalVisible(!this.state.searchModalQuery)
             }}>
-              <Text style={styles.text}>Hide Details</Text>
+              <Text style={styles.text}>Hide Results</Text>
             </TouchableOpacity>
 
           </View>
